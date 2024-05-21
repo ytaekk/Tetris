@@ -1,4 +1,4 @@
-﻿  tetris.cpp
-C:\VS_programing\tetris\tetris\tetris.cpp(20,16): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
-C:\VS_programing\tetris\tetris\tetris.cpp(20,19): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
-  tetris.vcxproj -> C:\VS_programing\tetris\x64\Debug\tetris.exe
+﻿  Tetris.cpp
+C:\VS_programing\Tetris\Tetris\Tetris.cpp(20,16): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+C:\VS_programing\Tetris\Tetris\Tetris.cpp(20,19): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+  tetris.vcxproj -> C:\VS_programing\Tetris\x64\Debug\Tetris.exe
