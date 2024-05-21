@@ -96,8 +96,8 @@ const int Blocks[7][BlockWidth * BlockHeight] = {
 	  0,0,0,0,
 	},
 	// T
-	{ 1,1,1,0,
-	  0,1,0,0,
+	{ 0,1,0,0,
+	  1,1,1,0,
 	  0,0,0,0,
 	  0,0,0,0,
 	}
@@ -185,7 +185,7 @@ public:
 			}
 	}
 	void moveBlock() {
-
+		
 			if (_kbhit()) {
 				int inKey = _getch();
 				switch (inKey) {
@@ -209,7 +209,6 @@ public:
 			}
 	}
 };
-
 
 // Draw Game Board => Rendering
 void drawBoard() {
