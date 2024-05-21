@@ -1,0 +1,4 @@
+﻿  tetris.cpp
+C:\VS_programing\tetris\tetris\tetris.cpp(38,16): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+C:\VS_programing\tetris\tetris\tetris.cpp(38,19): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+LINK : fatal error LNK1104: cannot open file 'C:\VS_programing\tetris\x64\Release\tetris.exe'
