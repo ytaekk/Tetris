@@ -134,19 +134,24 @@ public:
 	}
 
 	void left() {
-		_posX--;
+		if(!isCollision(_posX - 1, _posY, 0)) {
+			_posX--;
+		}
 	}
 	void right() {
-		_posX++;
-	}
-	void up() {
-		_posY--;
+		if (!isCollision(_posX + 1, _posY, 0)) {
+			_posX++;
+		}
 	}
 	void down() {
-		_posY+=2;
+		if (!isCollision(_posX, _posY + 2, 0)) {
+			_posY += 2;
+		}
 	}
 	void rotation() {
-		rotateBlock();
+		if (!isCollision(_posX, _posY, 1)) {
+			rotateBlock();
+		}
 	}
 
 	// Draw Block
@@ -155,7 +160,9 @@ public:
 		for (int y = 0; y < BlockHeight; y++) {
 			for (int x = 0; x < BlockWidth; x++)
 			{
-				board[_posY + y][_posX + x + blockCursor] = printBlock[(y * BlockHeight) + x];
+				if(printBlock[(y * BlockHeight) + x] == 1 && board[_posY + y][_posX + x + blockCursor] == 0) {
+					board[_posY + y][_posX + x + blockCursor] = 1;
+				}
 			}
 		}
 	}
@@ -165,7 +172,9 @@ public:
 		for (int y = 0; y < BlockHeight; y++) {
 			for (int x = 0; x < BlockWidth; x++)
 			{
-				board[_posY + y][_posX + x + blockCursor] = 0;
+				if (printBlock[(y * BlockHeight) + x] == 1) {
+					board[_posY + y][_posX + x + blockCursor] = 0;
+				}
 			}
 		}
 	}
@@ -188,25 +197,41 @@ public:
 		
 			if (_kbhit()) {
 				int inKey = _getch();
+				eraseBlock();
 				switch (inKey) {
 				case LEFT:
-					eraseBlock();
 					left();
 					break;
 				case RIGHT:
-					eraseBlock();
 					right();
 					break;
 				case UP:
-					eraseBlock();
 					rotation();
 					break;
 				case DOWN:
-					eraseBlock();
 					down();
 					break;
 				}
 			}
+	}
+	// Collision Check
+	bool isCollision(int newX, int newY, int nRot) {
+		
+		for (int y = 0; y < BlockHeight; y++) {
+			for (int x = 0; x < BlockWidth; x++)
+			{
+				if (nRot == 1 && board[newY + y][newX + x + blockCursor] == 3
+					&& printBlock[x * (BlockWidth)+(BlockHeight - y - 1)] == 1) {
+					// Collision
+					return true;
+				}
+				else if (board[newY + y][newX + x + blockCursor] == 3 && printBlock[(y * BlockHeight) + x] == 1) {
+					// Collision
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 };
 
