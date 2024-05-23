@@ -144,8 +144,8 @@ public:
 		}
 	}
 	void down() {
-		if (!isCollision(_posX, _posY + 2, 0)) {
-			_posY += 2;
+		if (!isCollision(_posX, _posY + 1, 0)) {
+			_posY++;
 		}
 	}
 	void rotation() {
@@ -180,7 +180,6 @@ public:
 	}
 	void rotateBlock() {
 
-		//int tempBlock[BlockHeight * BlockWidth] = { 0 };
 		int rotBlock[BlockHeight * BlockWidth] = { 0 };
 		int BlockSize = sizeof(int) * BlockHeight * BlockWidth;
 		
@@ -217,11 +216,28 @@ public:
 	// Collision Check
 	bool isCollision(int newX, int newY, int nRot) {
 		
+		int tempBlock[BlockHeight * BlockWidth] = { 0 };
+		int rotBlock[BlockHeight * BlockWidth] = { 0 };
+		int BlockSize = sizeof(int) * BlockHeight * BlockWidth;
+
+		// Copy printBlock to tempBlock for checking rotation.
+		if (nRot) {
+			memcpy(tempBlock, printBlock, BlockSize);
+			
+			for (int y = 0; y < BlockWidth; y++) {
+				for (int x = 0; x < BlockWidth; x++)
+				{
+					rotBlock[x * (BlockWidth)+(BlockHeight - y - 1)] = tempBlock[(y * BlockWidth) + x];
+				}
+			}
+
+		}
+		//Collision Check
 		for (int y = 0; y < BlockHeight; y++) {
 			for (int x = 0; x < BlockWidth; x++)
 			{
 				if (nRot == 1 && board[newY + y][newX + x + blockCursor] == 3
-					&& printBlock[x * (BlockWidth)+(BlockHeight - y - 1)] == 1) {
+					&& rotBlock[(y * BlockHeight) + x] == 1) {
 					// Collision
 					return true;
 				}
