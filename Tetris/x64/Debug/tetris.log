@@ -1,4 +1,5 @@
 ﻿  Tetris.cpp
 C:\VS_programing\Tetris\Tetris\Tetris.cpp(20,16): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
 C:\VS_programing\Tetris\Tetris\Tetris.cpp(20,19): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+C:\VS_programing\Tetris\Tetris\Tetris.cpp(274,18): warning C4553: '==': result of expression not used; did you intend '='?
   tetris.vcxproj -> C:\VS_programing\Tetris\x64\Debug\Tetris.exe

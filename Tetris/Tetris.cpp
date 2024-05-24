@@ -115,13 +115,16 @@ public:
 	
 	BlockClass()
 	{
+		initBlock();
+	}
+	void initBlock() {
 		_posX = 0;
 		_posY = 0;
 		_nRot = 0;
 		srand(static_cast<unsigned int>(time(NULL)));
 		numBlock = rand() % 7;
-		
-		
+
+
 		// Initiate Block 
 		for (int y = 0; y < BlockHeight; y++) {
 			for (int x = 0; x < BlockWidth; x++) {
@@ -130,9 +133,7 @@ public:
 
 			}
 		}
-
 	}
-
 	void left() {
 		if(!isCollision(_posX - 1, _posY, 0)) {
 			_posX--;
@@ -146,6 +147,17 @@ public:
 	void down() {
 		if (!isCollision(_posX, _posY + 1, 0)) {
 			_posY++;
+		}
+		else {
+			for (int y = 0; y < BlockHeight; y++) {
+				for (int x = 0; x < BlockWidth; x++)
+				{
+					if (printBlock[(y * BlockHeight) + x] == 1 && board[_posY + y][_posX + x + blockCursor] == 0) {
+						board[_posY + y][_posX + x + blockCursor] = 2;
+					}
+				}
+			}
+			initBlock();
 		}
 	}
 	void rotation() {
@@ -236,12 +248,13 @@ public:
 		for (int y = 0; y < BlockHeight; y++) {
 			for (int x = 0; x < BlockWidth; x++)
 			{
-				if (nRot == 1 && board[newY + y][newX + x + blockCursor] == 3
-					&& rotBlock[(y * BlockHeight) + x] == 1) {
+				if (nRot == 1 && (board[newY + y][newX + x + blockCursor] == 3 ||
+					board[newY + y][newX + x + blockCursor] == 2) && rotBlock[(y * BlockHeight) + x] == 1) {
 					// Collision
 					return true;
 				}
-				else if (board[newY + y][newX + x + blockCursor] == 3 && printBlock[(y * BlockHeight) + x] == 1) {
+				else if ((board[newY + y][newX + x + blockCursor] == 3 || board[newY + y][newX + x + blockCursor] == 2)
+					&& printBlock[(y * BlockHeight) + x] == 1) {
 					// Collision
 					return true;
 				}
@@ -249,6 +262,22 @@ public:
 		}
 		return false;
 	}
+
+	/* 수정해야함
+	void lineCheck() {
+		int sum = 0;
+		for (int y = 0; y < BlockHeight; y++) {
+			for (int x = 1; x < 11; x++) {
+				sum += board[y][x];
+			}
+			if (sum == 20) {
+				for (int x = 1; x < 11; x++) {
+					board[y][x] == 0;
+				}
+			}
+		}
+
+	}*/
 };
 
 // Draw Game Board => Rendering
@@ -270,14 +299,22 @@ void drawBoard() {
 void gameLoop() {
 	
 	BlockClass Block;
+	int count = 0;
+	const int gravitySpeed = 10;
 
 	while (1)
 	{
 		Block.drawBlock();
+		if (count % gravitySpeed == 0) {
+			Block.eraseBlock();
+			Block.down();
+		}
 		Block.moveBlock();
+		//Block.lineCheck();
 		drawBoard();
 		Sleep(10);
 		system("cls");
+		count++;
 	}
 
 }
