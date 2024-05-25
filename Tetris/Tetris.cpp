@@ -103,6 +103,8 @@ const int Blocks[7][BlockWidth * BlockHeight] = {
 	}
 };
 
+void drawBoard();
+
 class BlockClass {
 private:
 	int _posX;
@@ -148,6 +150,7 @@ public:
 		if (!isCollision(_posX, _posY + 1, 0)) {
 			_posY++;
 		}
+		// Collision : Stack Block
 		else {
 			for (int y = 0; y < BlockHeight; y++) {
 				for (int x = 0; x < BlockWidth; x++)
@@ -163,6 +166,15 @@ public:
 	void rotation() {
 		if (!isCollision(_posX, _posY, 1)) {
 			rotateBlock();
+		}
+	}
+	void dive() {
+		while (1) {
+			down();
+
+			if (isCollision(_posX, _posY + 1, 0)) {
+				break;
+			}
 		}
 	}
 
@@ -222,8 +234,13 @@ public:
 				case DOWN:
 					down();
 					break;
+				
+				case SPACEBAR:
+					dive();
+					break;
 				}
 			}
+			
 	}
 	// Collision Check
 	bool isCollision(int newX, int newY, int nRot) {
@@ -263,32 +280,54 @@ public:
 		return false;
 	}
 
-	/* 수정해야함
+	// 수정해야함
 	void lineCheck() {
 		int sum = 0;
-		for (int y = 0; y < BlockHeight; y++) {
+		for (int y = HEIGHT -1; y > 1; y--) {
 			for (int x = 1; x < 11; x++) {
 				sum += board[y][x];
 			}
 			if (sum == 20) {
 				for (int x = 1; x < 11; x++) {
-					board[y][x] == 0;
+					board[y][x] = 0;
 				}
+				for (; y > 6; y--) {
+					for (int x = 1; x < 11; x++) {
+						board[y][x] = board[y - 1][x];
+					}
+				}
+			}
+			else {
+				sum = 0;
 			}
 		}
 
-	}*/
+	}
+	bool gameOver() {
+		for (int x = 1; x < 11; x++) {
+			if (board[3][x]==2) {
+				return true;
+			}
+		}
+		return false;
+	}
+	void overMessage() {
+		moveCursor(0, 4);
+		std::cout << "☆★☆★☆★☆★☆★☆★" << std::endl;
+		std::cout << "☆      Game Over     ☆" << std::endl;
+		std::cout << "☆★☆★☆★☆★☆★☆★" << std::endl;
+		moveCursor(0, 22);
+	}
 };
 
 // Draw Game Board => Rendering
 void drawBoard() {
 
 	for (int y = 0; y < HEIGHT; y++) {
-		//moveCursor(6, 3 + y);
 		for (int x = 0; x < WIDTH; x++) {
 			if (board[y][x] == 0) std::cout << " .";
 			else if (board[y][x] == 1) std::cout << "■";
-			else if (board[y][x] == 2) std::cout << "□";
+			else if (board[y][x] == 2) std::cout << "■";
 			else if (board[y][x] == 3) std::cout << "▣";
 
 		}
@@ -310,11 +349,16 @@ void gameLoop() {
 			Block.down();
 		}
 		Block.moveBlock();
-		//Block.lineCheck();
+		Block.lineCheck();
 		drawBoard();
 		Sleep(10);
+		if (Block.gameOver()) {
+			Block.overMessage();
+			break;
+		}
 		system("cls");
 		count++;
+		
 	}
 
 }
@@ -324,7 +368,7 @@ int main()
 	CursorView(0);
 	gameLoop();
 	
-	
+
 
 	return 0;
 }
