@@ -1,24 +1,73 @@
-#include <iostream>
+﻿#include <iostream>
 #include <Windows.h>
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
 #include <conio.h>
 
-#define WIDTH 12	// ��Ʈ���� ���� ����
-#define HEIGHT 21	// ��Ʈ���� ���� ����
-#define LEFT 75		// ��
-#define RIGHT 77	// ��
-#define UP 72		// ��
-#define DOWN 80		// ��
+#define WIDTH 12	// 테트리스 보드 가로
+#define HEIGHT 21	// 테트리스 보드 세로
+#define LEFT 75		// →
+#define RIGHT 77	// ←
+#define UP 72		// ↑
+#define DOWN 80		// ↓
 #define SPACEBAR 32	// SPACEBAR
-#define BlockWidth 4 // Blcok ����
-#define BlockHeight 4// Blcok ����
+#define BlockWidth 4 // Blcok 가로
+#define BlockHeight 4// Blcok 세로
+
+// Double buffering 
+static int g_nScreenIndex;
+static HANDLE g_hScreen[2];
+int consoleSize;
+int renderBoard[HEIGHT][WIDTH];
+
+void ScreenInit()
+{
+	CONSOLE_CURSOR_INFO cci;
+	CONSOLE_SCREEN_BUFFER_INFO consoleInfo{ 0, };
+
+	// 화면 버퍼 2개를 만든다.
+	g_hScreen[0] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	g_hScreen[1] = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+
+	// 콘솔 사이즈 측정 = 사이즈가 안맞아서 버퍼 출력이 제대로 안됐음
+	consoleSize = (consoleInfo.srWindow.Right - consoleInfo.srWindow.Left)
+		* (consoleInfo.srWindow.Bottom - consoleInfo.srWindow.Top);
+
+	// 커서를 숨긴다.
+	cci.dwSize = 1;
+	cci.bVisible = FALSE;
+	SetConsoleCursorInfo(g_hScreen[0], &cci);
+	SetConsoleCursorInfo(g_hScreen[1], &cci);
+}
+void ScreenFlip()
+{
+	SetConsoleActiveScreenBuffer(g_hScreen[g_nScreenIndex]);
+	g_nScreenIndex = !g_nScreenIndex;
+}
+void ScreenClear()
+{
+	COORD Coor = { 0, 0 };
+	DWORD dw=0;
+	// consolsize 가 제대로 입력이 안돼서 버퍼가 제대로 출력이 안됐음.
+	FillConsoleOutputCharacter(g_hScreen[g_nScreenIndex], ' ', consoleSize, Coor, &dw);
+	SetConsoleCursorPosition(g_hScreen[g_nScreenIndex], Coor);
+
+}
+// 화면 버퍼 닫기
+void ScreenRelease()
+{
+	if(g_hScreen[0]!=nullptr)
+		CloseHandle(g_hScreen[0]);
+	if (g_hScreen[1] != nullptr)
+		CloseHandle(g_hScreen[1]);
+}
+
 
 // Move Cursor
 void moveCursor(int x, int y) {
 	COORD pos = { x, y };
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+	SetConsoleCursorPosition(g_hScreen[g_nScreenIndex], pos);
 }
 
 // Delete Cursor
@@ -57,18 +106,24 @@ int board[HEIGHT][WIDTH] = {
 	{3,0,0,0,0,0,0,0,0,0,0,3},// 20
 	{3,3,3,3,3,3,3,3,3,3,3,3},
 };
+const char BlockType[][4] = {
+	"  ", // 0
+	"■",  // 1
+	"■",  // 2
+	"▣",  // 3
+};
 
 const int Blocks[7][BlockWidth * BlockHeight] = {
 	// I
-	{ 1,1,1,1,
-	  0,0,0,0,
+	{ 0,0,0,0,
+	  1,1,1,1,
 	  0,0,0,0,
 	  0,0,0,0,
 	},
 	// J
-	{ 0,1,0,0,
-	  0,1,0,0,
-	  1,1,0,0,
+	{ 0,0,1,0,
+	  0,0,1,0,
+	  0,1,1,0,
 	  0,0,0,0,
 	},
 	// L
@@ -78,32 +133,34 @@ const int Blocks[7][BlockWidth * BlockHeight] = {
 	  0,0,0,0,
 	},
 	// O
-	{ 0,1,1,0,
+	{ 0,0,0,0,
 	  0,1,1,0,
-	  0,0,0,0,
+	  0,1,1,0,
 	  0,0,0,0,
 	},
 	// S
-	{ 0,1,1,0,
+	{ 0,0,0,0,
+	  0,1,1,0,
 	  1,1,0,0,
-	  0,0,0,0,
 	  0,0,0,0,
 	},
 	// Z
-	{ 1,1,0,0,
+	{ 0,0,0,0,
+	  1,1,0,0,
 	  0,1,1,0,
-	  0,0,0,0,
 	  0,0,0,0,
 	},
 	// T
-	{ 0,1,0,0,
+	{ 0,0,0,0,
+	  0,1,0,0,
 	  1,1,1,0,
-	  0,0,0,0,
 	  0,0,0,0,
 	}
 };
 
-void drawBoard();
+// void drawBoard();
+
+void DBRender();
 
 class BlockClass {
 private:
@@ -220,22 +277,26 @@ public:
 		
 			if (_kbhit()) {
 				int inKey = _getch();
-				eraseBlock();
 				switch (inKey) {
 				case LEFT:
+					eraseBlock();
 					left();
 					break;
 				case RIGHT:
+					eraseBlock();
 					right();
 					break;
 				case UP:
+					eraseBlock();
 					rotation();
 					break;
 				case DOWN:
+					eraseBlock();
 					down();
 					break;
 				
 				case SPACEBAR:
+					eraseBlock();
 					dive();
 					break;
 				}
@@ -279,8 +340,7 @@ public:
 		}
 		return false;
 	}
-
-	// �����ؾ���
+	// line Check and Delete Line.
 	void lineCheck() {
 		int sum = 0;
 		for (int y = HEIGHT -1; y > 1; y--) {
@@ -291,7 +351,8 @@ public:
 				for (int x = 1; x < 11; x++) {
 					board[y][x] = 0;
 				}
-				for (; y > 6; y--) {
+				// 블럭 생성 되는 곳 제외 한칸씩 내리기
+				for (; y > 4; y--) {
 					for (int x = 1; x < 11; x++) {
 						board[y][x] = board[y - 1][x];
 					}
@@ -303,6 +364,7 @@ public:
 		}
 
 	}
+	// Game Over Condition
 	bool gameOver() {
 		for (int x = 1; x < 11; x++) {
 			if (board[3][x]==2) {
@@ -311,30 +373,69 @@ public:
 		}
 		return false;
 	}
+	// Game Over  Message Rendering
 	void overMessage() {
-		moveCursor(0, 4);
-		std::cout << "�١ڡ١ڡ١ڡ١ڡ١ڡ١�" << std::endl;
-		std::cout << "��      Game Over     ��" << std::endl;
-		std::cout << "�١ڡ١ڡ١ڡ١ڡ١ڡ١�" << std::endl;
-		moveCursor(0, 22);
+		
+		char message[256] = { 0 };
+		int meslen = sprintf_s(message, sizeof(message),
+			"☆★☆★☆★☆★☆★☆★\n☆      Game Over     ☆\n☆★☆★☆★☆★☆★☆★");
+		DWORD dw;
+		COORD pos = { 0, 8 };
+		SetConsoleCursorPosition(g_hScreen[g_nScreenIndex], pos);
+		WriteFile(g_hScreen[g_nScreenIndex],message,meslen, &dw, NULL);
+		
+		ScreenFlip();
+
 	}
+
 };
 
 // Draw Game Board => Rendering
-void drawBoard() {
+//void drawBoard() {
+//
+//	for (int y = 0; y < HEIGHT; y++) {
+//		for (int x = 0; x < WIDTH; x++) {
+//			if (board[y][x] == 0) std::cout << " .";
+//			else if (board[y][x] == 1) std::cout << "■";
+//			else if (board[y][x] == 2) std::cout << "■";
+//			else if (board[y][x] == 3) std::cout << "▣";
+//
+//		}
+//		std::cout << std::endl;
+//	}
+//}
+
+// DB Render
+void DBRender() {
+
+	DWORD dw = 0;
+	COORD pos = { 0, 0 };
+	int space = 0;
 
 	for (int y = 0; y < HEIGHT; y++) {
+		space = 0;
 		for (int x = 0; x < WIDTH; x++) {
-			if (board[y][x] == 0) std::cout << " .";
-			else if (board[y][x] == 1) std::cout << "��";
-			else if (board[y][x] == 2) std::cout << "��";
-			else if (board[y][x] == 3) std::cout << "��";
+			pos.X = x*2;
+			pos.Y = y;
 
+			SetConsoleCursorPosition(g_hScreen[g_nScreenIndex], pos);
+			WriteFile(g_hScreen[g_nScreenIndex], BlockType[board[y][x]],
+				strlen(BlockType[board[y][x]]), &dw, NULL);
 		}
-		std::cout << std::endl;
+	}
+
+}
+// Game over Animation
+void fillBlock() {
+	for (int y = 0; y <= HEIGHT; y++) {
+		for (int x = 0; x < WIDTH; x++) {
+			board[y][x] = 1;
+		
+		}
+		DBRender();
+		ScreenFlip();
 	}
 }
-
 void gameLoop() {
 	
 	BlockClass Block;
@@ -343,20 +444,26 @@ void gameLoop() {
 
 	while (1)
 	{
-		Block.drawBlock();
 		if (count % gravitySpeed == 0) {
 			Block.eraseBlock();
 			Block.down();
 		}
 		Block.moveBlock();
 		Block.lineCheck();
-		drawBoard();
-		Sleep(10);
+		Block.drawBlock();
+
+
 		if (Block.gameOver()) {
+			fillBlock();
 			Block.overMessage();
+			Sleep(4000);
 			break;
 		}
-		system("cls");
+
+		DBRender();
+		ScreenClear();
+		ScreenFlip();
+
 		count++;
 		
 	}
@@ -365,9 +472,10 @@ void gameLoop() {
 
 int main()
 {
+	ScreenInit();
 	CursorView(0);
 	gameLoop();
-	
+	ScreenRelease();
 
 
 	return 0;
