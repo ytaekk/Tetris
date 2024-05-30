@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <conio.h>
+#include <random>
 
 #define WIDTH 12	// 테트리스 보드 가로
 #define HEIGHT 21	// 테트리스 보드 세로
@@ -180,9 +181,11 @@ public:
 		_posX = 0;
 		_posY = 0;
 		_nRot = 0;
-		srand(static_cast<unsigned int>(time(NULL)));
-		numBlock = rand() % 7;
 
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<int> dist(0, 6);
+		numBlock = dist(gen); // 한번만 블럭 번호 생성.
 
 		// Initiate Block 
 		for (int y = 0; y < BlockHeight; y++) {

@@ -1,5 +1,5 @@
 ﻿  Tetris.cpp
-C:\VS_programing\Tetris\Tetris\Tetris.cpp(69,16): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
-C:\VS_programing\Tetris\Tetris\Tetris.cpp(69,19): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
-C:\VS_programing\Tetris\Tetris\Tetris.cpp(423,11): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
+C:\VS_programing\Tetris\Tetris\Tetris.cpp(70,16): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+C:\VS_programing\Tetris\Tetris\Tetris.cpp(70,19): warning C4838: conversion from 'int' to 'SHORT' requires a narrowing conversion
+C:\VS_programing\Tetris\Tetris\Tetris.cpp(426,11): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
   tetris.vcxproj -> C:\VS_programing\Tetris\x64\Debug\Tetris.exe
