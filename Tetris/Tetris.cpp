@@ -5,6 +5,7 @@
 #include <ctime>
 #include <conio.h>
 #include <random>
+#include <chrono>
 
 #define WIDTH 12	// 테트리스 보드 가로
 #define HEIGHT 21	// 테트리스 보드 세로
@@ -171,6 +172,8 @@ private:
 	const int blockCursor = 4;
 	int printBlock[BlockHeight * BlockWidth] = { 0 };
 	int numBlock;
+	int scoreFlag;
+	int score = 0;
 public:
 	
 	BlockClass()
@@ -181,7 +184,8 @@ public:
 		_posX = 0;
 		_posY = 0;
 		_nRot = 0;
-
+		
+		// Random Number
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_int_distribution<int> dist(0, 6);
@@ -220,6 +224,7 @@ public:
 					}
 				}
 			}
+			score++;
 			initBlock();
 		}
 	}
@@ -277,7 +282,7 @@ public:
 			}
 	}
 	void moveBlock() {
-		
+
 			if (_kbhit()) {
 				int inKey = _getch();
 				switch (inKey) {
@@ -329,11 +334,13 @@ public:
 		for (int y = 0; y < BlockHeight; y++) {
 			for (int x = 0; x < BlockWidth; x++)
 			{
+				// 벽 옆에서 회전하면 충돌 여부 체크
 				if (nRot == 1 && (board[newY + y][newX + x + blockCursor] == 3 ||
 					board[newY + y][newX + x + blockCursor] == 2) && rotBlock[(y * BlockHeight) + x] == 1) {
 					// Collision
 					return true;
 				}
+				// 벽 옆으로 이동하려고 할 때 충돌 체크
 				else if ((board[newY + y][newX + x + blockCursor] == 3 || board[newY + y][newX + x + blockCursor] == 2)
 					&& printBlock[(y * BlockHeight) + x] == 1) {
 					// Collision
@@ -346,26 +353,38 @@ public:
 	// line Check and Delete Line.
 	void lineCheck() {
 		int sum = 0;
+		int bonus = 0;	// 연속 제거시 보너스 점수
+
+		// 보드 1~10까지 값 더함
 		for (int y = HEIGHT -1; y > 1; y--) {
+			sum = 0;
 			for (int x = 1; x < 11; x++) {
 				sum += board[y][x];
-			}
-			if (sum == 20) {
-				for (int x = 1; x < 11; x++) {
-					board[y][x] = 0;
-				}
-				// 블럭 생성 되는 곳 제외 한칸씩 내리기
-				for (; y > 4; y--) {
-					for (int x = 1; x < 11; x++) {
-						board[y][x] = board[y - 1][x];
-					}
-				}
-			}
-			else {
-				sum = 0;
-			}
-		}
 
+				// 합 20 (한줄 완성 2 x 10)
+				if (sum == 20) {
+					for (int x = 1; x < 11; x++) {
+						board[y][x] = 0;
+					}
+					// 블럭 생성 되는 곳 제외 한칸씩 내리기
+					for (; y > 4; y--) {
+						for (int x = 1; x < 11; x++) {
+							board[y][x] = board[y - 1][x];
+						}
+					}
+					// 연속 제거 보너스
+					bonus++;
+				}
+			}
+			/*else {
+				sum = 0;
+			}*/
+		}
+		// 점수 정산 (1라인 = 2점, 2라인 = 4점, 3라인 9점) 2라인 부터는 연속 라인 수 제곱
+		if (bonus == 1)
+			score += (bonus + 1);
+		else if (bonus > 1)
+			score += (bonus * bonus);
 	}
 	// Game Over Condition
 	bool gameOver() {
@@ -379,18 +398,28 @@ public:
 	// Game Over  Message Rendering
 	void overMessage() {
 		
-		char message[256] = { 0 };
-		int meslen = sprintf_s(message, sizeof(message),
+		char overmessage[256] = { 0 };
+		int meslen = sprintf_s(overmessage, sizeof(overmessage),
 			"☆★☆★☆★☆★☆★☆★\n☆      Game Over     ☆\n☆★☆★☆★☆★☆★☆★");
 		DWORD dw;
 		COORD pos = { 0, 8 };
 		SetConsoleCursorPosition(g_hScreen[g_nScreenIndex], pos);
-		WriteFile(g_hScreen[g_nScreenIndex],message,meslen, &dw, NULL);
+		WriteFile(g_hScreen[g_nScreenIndex],overmessage,meslen, &dw, NULL);
 		
 		ScreenFlip();
 
 	}
+	void printScore() {
 
+		char printscore[256] = { 0 };
+		int meslen = sprintf_s(printscore, sizeof(printscore),
+			"★ SCORE : %d ★",score);
+		DWORD dw;
+		COORD pos = { 30, 4 };
+		SetConsoleCursorPosition(g_hScreen[g_nScreenIndex], pos);
+		WriteFile(g_hScreen[g_nScreenIndex], printscore, meslen, &dw, NULL);
+
+	}
 };
 
 // Draw Game Board => Rendering
@@ -451,6 +480,7 @@ void gameLoop() {
 			Block.eraseBlock();
 			Block.down();
 		}
+		Block.printScore();
 		Block.moveBlock();
 		Block.lineCheck();
 		Block.drawBlock();
@@ -468,7 +498,7 @@ void gameLoop() {
 		ScreenFlip();
 
 		count++;
-		
+		Sleep(1);
 	}
 
 }
